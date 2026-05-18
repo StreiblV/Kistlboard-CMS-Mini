@@ -69,22 +69,28 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    cards: Card;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    cards: {
+      assets: 'media';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    cards: CardsSelect<false> | CardsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
   globals: {};
@@ -122,7 +128,7 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -147,8 +153,14 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
-  alt: string;
+  id: number;
+  card?: (number | null) | Card;
+  assetType: 'artwork' | 'figure' | 'drawing-clip' | 'reveal-clip' | 'final-video' | 'other';
+  /**
+   * Optional. Sinnvoll für Bilder, bei Videos kann das leer bleiben.
+   */
+  alt?: string | null;
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -163,10 +175,54 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cards".
+ */
+export interface Card {
+  id: number;
+  name: string;
+  plannedPostingDate?: string | null;
+  emojiHints?: string | null;
+  gifWish?: string | null;
+  textWishes?: string | null;
+  finalVideo?: (number | null) | Media;
+  assets?: {
+    docs?: (number | Media)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  status?: ('planning' | 'drawing' | 'video-edit' | 'review' | 'content' | 'scheduled' | 'done' | 'archived') | null;
+  checklist?: {
+    sketch?: boolean | null;
+    lineart?: boolean | null;
+    colored?: boolean | null;
+    drawing?: boolean | null;
+    drawingClips?: boolean | null;
+    revealClipUploaded?: boolean | null;
+    figure?: boolean | null;
+    artwork?: boolean | null;
+    finalVideoUploaded?: boolean | null;
+    speedartClip?: boolean | null;
+    revealSequenceEdited?: boolean | null;
+    editFinish?: boolean | null;
+    videoRendered?: boolean | null;
+    captionWritten?: boolean | null;
+    scheduledPost?: boolean | null;
+    published?: boolean | null;
+  };
+  review?: {
+    status?: ('none' | 'approved' | 'declined') | null;
+    comment?: string | null;
+  };
+  archived?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -183,20 +239,24 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'cards';
+        value: number | Card;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -206,10 +266,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -229,7 +289,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -262,7 +322,10 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  card?: T;
+  assetType?: T;
   alt?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -274,6 +337,49 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cards_select".
+ */
+export interface CardsSelect<T extends boolean = true> {
+  name?: T;
+  plannedPostingDate?: T;
+  emojiHints?: T;
+  gifWish?: T;
+  textWishes?: T;
+  finalVideo?: T;
+  assets?: T;
+  status?: T;
+  checklist?:
+    | T
+    | {
+        sketch?: T;
+        lineart?: T;
+        colored?: T;
+        drawing?: T;
+        drawingClips?: T;
+        revealClipUploaded?: T;
+        figure?: T;
+        artwork?: T;
+        finalVideoUploaded?: T;
+        speedartClip?: T;
+        revealSequenceEdited?: T;
+        editFinish?: T;
+        videoRendered?: T;
+        captionWritten?: T;
+        scheduledPost?: T;
+        published?: T;
+      };
+  review?:
+    | T
+    | {
+        status?: T;
+        comment?: T;
+      };
+  archived?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
