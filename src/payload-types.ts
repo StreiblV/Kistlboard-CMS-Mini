@@ -181,17 +181,26 @@ export interface Card {
   id: number;
   name: string;
   plannedPostingDate?: string | null;
+  part?: string | null;
   emojiHints?: string | null;
   gifWish?: string | null;
   textWishes?: string | null;
+  changeRequests?: string | null;
+  caption?: string | null;
+  /**
+   * Das Video, das im Review-Player angezeigt wird. Bei Decline wird es später über Angular wieder entfernt, bleibt aber weiterhin unter Zugehörige Medien/Clips sichtbar.
+   */
   finalVideo?: (number | null) | Media;
   assets?: {
     docs?: (number | Media)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
-  status?: ('planning' | 'drawing' | 'video-edit' | 'review' | 'content' | 'scheduled' | 'done' | 'archived') | null;
   checklist?: {
+    /**
+     * Wird über den Start-Workflow-Button im Kistlboard gesetzt.
+     */
+    workflowStarted?: boolean | null;
     sketch?: boolean | null;
     lineart?: boolean | null;
     colored?: boolean | null;
@@ -345,15 +354,18 @@ export interface MediaSelect<T extends boolean = true> {
 export interface CardsSelect<T extends boolean = true> {
   name?: T;
   plannedPostingDate?: T;
+  part?: T;
   emojiHints?: T;
   gifWish?: T;
   textWishes?: T;
+  changeRequests?: T;
+  caption?: T;
   finalVideo?: T;
   assets?: T;
-  status?: T;
   checklist?:
     | T
     | {
+        workflowStarted?: T;
         sketch?: T;
         lineart?: T;
         colored?: T;

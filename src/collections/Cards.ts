@@ -1,96 +1,18 @@
 import type { CollectionConfig } from 'payload'
 
-const calculateStatus = (data: any): string => {
-  const checklist = data.checklist || {}
-  const review = data.review || {}
-
-  if (data.archived) {
-    return 'archived'
-  }
-
-  if (checklist.published) {
-    return 'done'
-  }
-
-  if (review.status === 'approved' && checklist.scheduledPost) {
-    return 'scheduled'
-  }
-
-  if (review.status === 'approved') {
-    return 'content'
-  }
-
-  if (review.status === 'declined') {
-    return 'video-edit'
-  }
-
-  if (
-    checklist.editFinish &&
-    checklist.videoRendered &&
-    checklist.finalVideoUploaded &&
-    data.finalVideo
-  ) {
-    return 'review'
-  }
-
-  if (
-    checklist.drawing &&
-    checklist.drawingClips &&
-    checklist.revealClipUploaded &&
-    checklist.figure &&
-    checklist.artwork
-  ) {
-    return 'video-edit'
-  }
-
-  if (
-    checklist.sketch ||
-    checklist.lineart ||
-    checklist.colored ||
-    checklist.drawing
-  ) {
-    return 'drawing'
-  }
-
-  return 'planning'
-}
-
 export const Cards: CollectionConfig = {
   slug: 'cards',
 
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'status', 'plannedPostingDate', 'updatedAt'],
+    defaultColumns: ['name', 'part', 'plannedPostingDate', 'archived', 'updatedAt'],
   },
 
   access: {
     read: () => true,
-    create: ({ req }) => Boolean(req.user),
-    update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
-  },
-
-  hooks: {
-    beforeChange: [
-      ({ data, originalDoc }) => {
-        const mergedData = {
-          ...(originalDoc || {}),
-          ...(data || {}),
-          checklist: {
-            ...((originalDoc as any)?.checklist || {}),
-            ...((data as any)?.checklist || {}),
-          },
-          review: {
-            ...((originalDoc as any)?.review || {}),
-            ...((data as any)?.review || {}),
-          },
-        }
-
-        data.status = calculateStatus(mergedData)
-
-        return data
-      },
-    ],
+    create: ({ req }) => true,
+    update: ({ req }) => true,
+    delete: ({ req }) => true,
   },
 
   fields: [
@@ -105,6 +27,12 @@ export const Cards: CollectionConfig = {
       name: 'plannedPostingDate',
       label: 'Geplantes Posting',
       type: 'date',
+    },
+
+    {
+      name: 'part',
+      label: 'Part',
+      type: 'text',
     },
 
     {
@@ -126,10 +54,26 @@ export const Cards: CollectionConfig = {
     },
 
     {
+      name: 'changeRequests',
+      label: 'Änderungswünsche / Review-Kommentare',
+      type: 'textarea',
+    },
+
+    {
+      name: 'caption',
+      label: 'Caption',
+      type: 'textarea',
+    },
+
+    {
       name: 'finalVideo',
       label: 'Finales Review-Video',
       type: 'upload',
       relationTo: 'media',
+      admin: {
+        description:
+          'Das Video, das im Review-Player angezeigt wird. Bei Decline wird es später über Angular wieder entfernt, bleibt aber weiterhin unter Zugehörige Medien/Clips sichtbar.',
+      },
     },
 
     {
@@ -145,30 +89,19 @@ export const Cards: CollectionConfig = {
     },
 
     {
-      name: 'status',
-      label: 'Status',
-      type: 'select',
-      defaultValue: 'planning',
-      admin: {
-        readOnly: true,
-      },
-      options: [
-        { label: 'In Planning', value: 'planning' },
-        { label: 'Drawing', value: 'drawing' },
-        { label: 'Video Schnitt', value: 'video-edit' },
-        { label: 'In Review', value: 'review' },
-        { label: 'Content Creator', value: 'content' },
-        { label: 'Scheduled', value: 'scheduled' },
-        { label: 'Done', value: 'done' },
-        { label: 'Archived', value: 'archived' },
-      ],
-    },
-
-    {
       name: 'checklist',
       label: 'Checklist',
       type: 'group',
       fields: [
+        {
+          name: 'workflowStarted',
+          label: 'Workflow gestartet',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Wird über den Start-Workflow-Button im Kistlboard gesetzt.',
+          },
+        },
         {
           type: 'collapsible',
           label: 'Artist',
@@ -290,9 +223,18 @@ export const Cards: CollectionConfig = {
           type: 'select',
           defaultValue: 'none',
           options: [
-            { label: 'In Review', value: 'none' },
-            { label: 'Approved', value: 'approved' },
-            { label: 'Declined', value: 'declined' },
+            {
+              label: 'Kein Review / In Review',
+              value: 'none',
+            },
+            {
+              label: 'Approved',
+              value: 'approved',
+            },
+            {
+              label: 'Declined',
+              value: 'declined',
+            },
           ],
         },
         {

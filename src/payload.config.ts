@@ -21,6 +21,12 @@ export default buildConfig({
   },
   collections: [Users, Media, Cards],
   editor: lexicalEditor(),
+  upload: {
+    abortOnLimit: true,
+    limits: {
+      fileSize: 1024 * 1024 * 1024, // 1 GB
+    },
+  },
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
