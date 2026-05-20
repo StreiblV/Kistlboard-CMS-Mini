@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { getAccessibleBoardIDs } from '../access/getAccessibleBoardIDs'
 
 export const Cards: CollectionConfig = {
   slug: 'cards',
@@ -16,7 +17,7 @@ export const Cards: CollectionConfig = {
 
       return {
         board: {
-          in: req.user?.boards || [],
+          in: getAccessibleBoardIDs(req.user),
         },
       }
     },
@@ -32,7 +33,7 @@ export const Cards: CollectionConfig = {
 
       return {
         board: {
-          in: req.user?.boards || [],
+          in: getAccessibleBoardIDs(req.user),
         },
       }
     },

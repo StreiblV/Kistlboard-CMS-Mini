@@ -1,3 +1,4 @@
+import { getAccessibleBoardIDs } from '@/access/getAccessibleBoardIDs'
 import type { CollectionConfig } from 'payload'
 
 export const Media: CollectionConfig = {
@@ -16,7 +17,7 @@ export const Media: CollectionConfig = {
 
       return {
         'card.board': {
-            in: req.user?.boards || [],
+            in: getAccessibleBoardIDs(req.user),
           },
       }
     },
@@ -32,7 +33,7 @@ export const Media: CollectionConfig = {
 
       return {
         'card.board':{
-            in: req.user?.boards || [],
+            in: getAccessibleBoardIDs(req.user),
           },
       }
     },
@@ -44,7 +45,7 @@ export const Media: CollectionConfig = {
 
       return {
         'card.board':{
-            in: req.user?.boards || [],
+            in: getAccessibleBoardIDs(req.user),
           },
       }
     },
