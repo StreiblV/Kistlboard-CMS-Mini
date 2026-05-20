@@ -39,4 +39,7 @@ export default buildConfig({
   }),
   sharp,
   plugins: [],
+  cors: {
+    origins: ['http://localhost:4200', 'https://kistlboard.rynkix.com'],
+  },
 })
