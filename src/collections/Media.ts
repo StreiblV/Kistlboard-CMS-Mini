@@ -9,10 +9,45 @@ export const Media: CollectionConfig = {
   },
 
   access: {
-    read: () => true,
-    create: ({ req }) => true,
-    update: ({ req }) => true,
-    delete: ({ req }) => true,
+    read: ({ req }) => {
+      if (req.user?.role === 'admin') {
+        return true
+      }
+
+      return {
+        'card.board': {
+            in: req.user?.boards || [],
+          },
+      }
+    },
+
+    create: ({ req }) => {
+      return Boolean(req.user)
+    },
+
+    update: ({ req }) => {
+      if (req.user?.role === 'admin') {
+        return true
+      }
+
+      return {
+        'card.board':{
+            in: req.user?.boards || [],
+          },
+      }
+    },
+
+    delete: ({ req }) => {
+      if (req.user?.role === 'admin') {
+        return true
+      }
+
+      return {
+        'card.board':{
+            in: req.user?.boards || [],
+          },
+      }
+    },
   },
 
   upload: {

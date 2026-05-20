@@ -7,6 +7,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Boards } from './collections/Boards'
 import { Cards } from './collections/Cards'
 
 const filename = fileURLToPath(import.meta.url)
@@ -19,7 +20,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Cards],
+  collections: [Users, Media, Boards, Cards],
   editor: lexicalEditor(),
   upload: {
     abortOnLimit: true,

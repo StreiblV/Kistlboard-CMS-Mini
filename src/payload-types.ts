@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    boards: Board;
     cards: Card;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -83,6 +84,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    boards: BoardsSelect<false> | BoardsSelect<true>;
     cards: CardsSelect<false> | CardsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -129,6 +131,8 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  role: 'admin' | 'editor' | 'client';
+  boards?: (number | Board)[] | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -147,6 +151,18 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "boards".
+ */
+export interface Board {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -180,6 +196,7 @@ export interface Media {
 export interface Card {
   id: number;
   name: string;
+  board: number | Board;
   plannedPostingDate?: string | null;
   part?: string | null;
   emojiHints?: string | null;
@@ -259,6 +276,10 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'boards';
+        value: number | Board;
+      } | null)
+    | ({
         relationTo: 'cards';
         value: number | Card;
       } | null);
@@ -309,6 +330,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
+  boards?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -349,10 +372,22 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "boards_select".
+ */
+export interface BoardsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "cards_select".
  */
 export interface CardsSelect<T extends boolean = true> {
   name?: T;
+  board?: T;
   plannedPostingDate?: T;
   part?: T;
   emojiHints?: T;

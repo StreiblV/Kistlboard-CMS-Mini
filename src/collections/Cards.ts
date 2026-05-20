@@ -9,10 +9,45 @@ export const Cards: CollectionConfig = {
   },
 
   access: {
-    read: () => true,
-    create: ({ req }) => true,
-    update: ({ req }) => true,
-    delete: ({ req }) => true,
+    read: ({ req }) => {
+      if (req.user?.role === 'admin') {
+        return true
+      }
+
+      return {
+        board: {
+          in: req.user?.boards || [],
+        },
+      }
+    },
+
+    create: ({ req }) => {
+      return Boolean(req.user)
+    },
+
+    update: ({ req }) => {
+      if (req.user?.role === 'admin') {
+        return true
+      }
+
+      return {
+        board: {
+          in: req.user?.boards || [],
+        },
+      }
+    },
+
+    delete: ({ req }) => {
+      if (req.user?.role === 'admin') {
+        return true
+      }
+
+      return {
+        board: {
+          in: req.user?.boards || [],
+        },
+      }
+    },
   },
 
   fields: [
@@ -20,6 +55,14 @@ export const Cards: CollectionConfig = {
       name: 'name',
       label: 'Character Name',
       type: 'text',
+      required: true,
+    },
+
+    {
+      name: 'board',
+      label: 'Board',
+      type: 'relationship',
+      relationTo: 'boards',
       required: true,
     },
 
