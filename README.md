@@ -1,67 +1,244 @@
-# Payload Blank Template
+# Kistlboard CMS Mini
 
-This template comes configured with the bare minimum to get started on anything you need.
+This repository contains the CMS / backend part of **Kistlboard Mini**.
 
-## Quick start
+Kistlboard Mini is a small, self-hostable version of Kistlboard.
+The CMS is used to manage the content that is displayed by the web app.
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+This repository is part of the full Kistlboard Mini setup:
 
-## Quick Start - local setup
+* **Kistlboard CMS Mini** – backend / CMS
+* **Kistlboard Web Mini** – frontend / web app
 
-To spin up this template locally, follow these steps:
+For the full project setup, please check the main `Kistlboard-Mini` repository.
 
-### Clone
+---
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+## Requirements
 
-### Development
+Before starting the project, make sure you have the following installed:
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+* Node.js
+* pnpm
+* Podman/Docker - for database
+* Git
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+The CMS also requires a local PostgreSQL database.
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+---
 
-#### Docker (Optional)
+## Local Setup
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+### 1. Clone the Repository
 
-To do so, follow these steps:
+If you are using this repository directly:
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+```bash
+git clone https://github.com/YOUR-USERNAME/Kistlboard-CMS-Mini.git
+cd Kistlboard-CMS-Mini
+```
 
-## How it works
+If you cloned the full `Kistlboard-Mini` repository with submodules, change into the CMS folder instead:
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+```bash
+cd cms
+```
 
-### Collections
+---
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+### 2. Install Dependencies
 
-- #### Users (Authentication)
+```bash
+pnpm install
+```
 
-  Users are auth-enabled collections that have access to the admin panel.
+---
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/3.x/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+### 3. Start the Local Database
 
-- #### Media
+The database is not included directly in this repository.
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+The CMS requires a PostgreSQL database. You can either run PostgreSQL with Docker/Podman or install PostgreSQL directly on your system.
+This documentation uses Podman for the local development setup.
 
-### Docker
+For local development, you can start a PostgreSQL database with Podman:
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
+```bash
+podman run --name kistlboard-mini-db \
+  -e POSTGRES_USER=kistlboard \
+  -e POSTGRES_PASSWORD=kistlboard \
+  -e POSTGRES_DB=cms \
+  -p 5432:5432 \
+  -d postgres:16
+```
 
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
+If the database container already exists, start it again with:
 
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
+```bash
+podman start kistlboard-mini-db
+```
 
-## Questions
+To stop the database:
 
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+```bash
+podman stop kistlboard-mini-db
+```
+
+To remove the database container completely:
+
+```bash
+podman rm kistlboard-mini-db
+```
+
+> Note: Removing the database container will delete the local database data unless you are using a persistent volume.
+
+---
+
+### 4. Create the Environment File
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Then make sure your `.env` contains the following values:
+
+```env
+# Important: required for auth, sessions, tokens, etc.
+# Please replace this with your own random value later.
+PAYLOAD_SECRET=thisIsTheSecretKeyForThePayloadApp
+
+# Database connection
+DATABASE_URI=postgres://kistlboard:kistlboard@localhost:5432/cms
+DATABASE_URL=postgres://kistlboard:kistlboard@localhost:5432/cms
+```
+
+Some projects expect `DATABASE_URI`, others expect `DATABASE_URL`.
+Both are included here to make local setup easier.
+
+> Important: Do not use the example `PAYLOAD_SECRET` in production. Replace it with your own secure random value.
+
+---
+
+### 5. Start the Development Server
+
+```bash
+pnpm dev
+```
+
+After the server has started, open:
+
+```text
+http://localhost:3000
+```
+
+The Payload admin panel is usually available at:
+
+```text
+http://localhost:3000/admin
+```
+
+On the first start, follow the on-screen instructions to create your first admin user.
+
+---
+
+## Project Structure
+
+```text
+Kistlboard-CMS-Mini/
+├── src/              # CMS source code
+├── public/           # Public assets
+├── .env.example      # Example environment variables
+├── package.json      # Project scripts and dependencies
+└── README.md
+```
+
+---
+
+## Available Scripts
+
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+Start the local development server:
+
+```bash
+pnpm dev
+```
+
+Build the project:
+
+```bash
+pnpm build
+```
+
+Start the production build:
+
+```bash
+pnpm start
+```
+
+---
+
+## Database Notes
+
+This project uses PostgreSQL for local development.
+
+The default local database settings are:
+
+```text
+Host: localhost
+Port: 5432
+Database: cms
+User: kistlboard
+Password: kistlboard
+```
+
+These values are intended for local development only.
+
+For production, please use secure credentials and a properly configured PostgreSQL database.
+
+---
+
+## Security Notes
+
+Before making changes public or deploying this project, make sure that:
+
+* `.env` is not committed
+* real secrets are not committed
+* production database credentials are not committed
+* `PAYLOAD_SECRET` is changed to a secure random value
+* local development passwords are not reused in production
+
+---
+
+## Deployment
+
+This repository only contains the CMS part of Kistlboard Mini.
+
+For a full deployment, you also need:
+
+* a running PostgreSQL database
+* this CMS application
+* the Kistlboard Web Mini frontend
+* the correct environment variables for both projects
+
+Please check the main `Kistlboard-Mini` repository for the full project overview.
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+See the `LICENSE` file for more information.
+
+---
+
+## Author
+
+Created by **Contentkistl / StreiblV**.
